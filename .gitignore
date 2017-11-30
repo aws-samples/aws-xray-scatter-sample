@@ -1,0 +1,11 @@
+vendor
+.bundle
+coverage
+tmp
+.DS_Store
+.elasticbeanstalk
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

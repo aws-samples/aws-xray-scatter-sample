@@ -1,0 +1,319 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+
+<head>
+    <title>
+        X-Ray Scatter Demo
+    </title>
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jq-2.2.4/dt-1.10.15/rg-1.0.0/datatables.min.css"
+    />
+
+    <style>
+        #container {
+            font-family: Helvetica;
+            left: 0px;
+            top: 0px;
+            bottom: 0px;
+            right: 0px;
+            padding: 15px;
+            padding-top: 0px;
+            padding-bottom: 0px;
+            width: auto;
+            height: auto;
+            z-index: 100;
+            background: #ffffff;
+            display: block;
+        }
+
+        div,
+        span,
+        table,
+        th,
+        td {
+            /*border: 1px dotted;*/
+        }
+
+        #navigation {
+            margin-top: 10px;
+            font-size: 85%;
+        }
+
+        #header {
+            overflow: hidden;
+            position: relative;
+        }
+
+        .headerTitle {
+            font-size: 100%;
+            position: absolute;
+            bottom: 0px;
+        }
+
+        #headerTimer {
+            font-size: 100%;
+            position: absolute;
+            bottom: 0px;
+            right: 75px;
+        }
+
+        #settings {
+            float: right;
+        }
+
+        .settings {
+            position: fixed;
+            left: auto;
+            bottom: 0px;
+            right: 0px;
+            width: 250px;
+            height: 100%;
+            z-index: 100;
+            background: #f8f8f8;
+            display: none;
+            border-left: 1px dotted;
+        }
+
+        .indent {
+            margin-left: 15px;
+            margin-right: 15px;
+        }
+
+        .spacer {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        #loading {
+            margin-bottom: 15px;
+        }
+
+        #settings a {
+            color: black;
+            text-decoration: none;
+            font-size: 160%;
+        }
+
+        a:hover {
+            color: hotpink;
+            text-decoration: none;
+        }
+
+        table a:visited {
+            color: #c16700;
+            text-decoration: none;
+        }
+
+        a:link,
+        a:visited {
+            color: darkorange;
+            text-decoration: none;
+        }
+
+        #chart {
+            width: 100%;
+            height: 100%;
+        }
+
+        #tracesLoading {
+            display: none;
+        }
+
+        caption {
+            font-size: 18px;
+            padding-bottom: 10px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        th,
+        table.dataTable thead th {
+            font-size: 15px;
+            text-align: left;
+            font-weight: normal;
+        }
+
+        td,
+        table.dataTable thead td {
+            font-size: 12px;
+            text-align: left;
+            font-weight: normal;
+        }
+
+        table a:visited {
+            color: #c16700;
+            text-decoration: none;
+        }
+
+        td.details-control {
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='50px' width='50px'><text x='0' y='15' fill='darkorange' font-size='15'>+</text></svg>");
+            cursor: pointer;
+        }
+
+        tr.shown td.details-control {
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='50px' width='50px'><text x='0' y='15' fill='darkorange' font-size='15'>×</text></svg>");
+            cursor: pointer;
+        }
+
+        td {
+            vertical-align: top;
+        }
+
+        table#annotations {
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+
+        #annotations td {
+            padding: 0;
+            margin: 0;
+            padding-bottom: 2px;
+        }
+
+        #annotations tr:not(:first-child)>td {
+            padding-top: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header">
+        <span class="headerTitle">
+            Last
+            <span id="timeSpan">
+                <select name="select" id="timeSpanSelect"></select>
+            </span>
+            of
+            <span id="entity">
+                <select name="select" id="entitySelect" style="width:50%"></select>
+            </span>
+            in
+            <span id="headerTitle"></span>
+        </span>
+        <span id="headerTimer"></span>
+        <span id="settings">
+            <a href="#">&#8230;</a>
+        </span>
+    </div>
+
+    <div id="container">
+        <div id="loading">
+            <p>Please wait...</p>
+        </div>
+        <div id="chart"></div>
+        <div>
+            <div id="tracesLoading">
+                <p>Fetching matching traces...</p>
+            </div>
+            <table class="display hover compact" width="100%" id="traceTable">
+                <caption>Traces</caption>
+                <thead>
+                    <tr>
+                        <th>URL</th>
+                        <th>Response Time (s)</th>
+                        <th>HTTP Status</th>
+                        <th>Users</th>
+                        <th>Console</th>
+                        <th></th>
+                    </tr>
+                    </thread>
+            </table>
+        </div>
+    </div>
+
+    <div class="settings">
+        <div class="indent spacer">
+            <span id="hideSettings">
+                <a href="#">&#10005;</a>
+            </span>
+            <p>
+                <div id="settingsContent">
+                    <h3>Region</h3>
+                    <form id="regionFormDiv">
+                        <div id="regions"></div>
+                    </form>
+
+                    <p>
+                </div>
+        </div>
+
+        <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vega/3.0.2/vega.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vega-lite/2.0.0-rc3/vega-lite.js" charset="utf-8"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vega-embed/3.0.0-beta.17/vega-embed.js"></script>
+
+        <script type="text/javascript" src="https://cdn.datatables.net/v/dt/jq-3.2.1/jq-3.2.1/dt-1.10.16/rg-1.0.2/sl-1.2.3/datatables.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lodash@4.17.4/lodash.min.js"></script>
+
+        <script type="text/javascript" src="/javascript/cookie.js" charset="utf-8"></script>
+        <script type="text/javascript" src="/javascript/settings.js" charset="utf-8"></script>
+        <script type="text/javascript" src="/javascript/scatter.js" charset="utf-8"></script>
+        <script type="text/javascript" src="/javascript/traces.js" charset="utf-8"></script>
+        <script type="text/javascript" src="/javascript/select.js" charset="utf-8"></script>
+
+        <script>
+            let settingsPanel = document.getElementsByClassName('settings')[0];
+            let chartDiv = document.getElementById("chart");
+            let headerTitleSpan = document.getElementById('headerTitle');
+            let headerTimerSpan = document.getElementById('headerTimer');
+
+            // Update "Referesh in" counter three times per second.
+            setInterval(function () {
+                if (scatter.refreshedAt && scatter.startTime) {
+                    const refreshedAtDelta = Math.floor((Date.now() - scatter.refreshedAt) / 1000);
+                    const nextPollDelta = (scatter.polledAt.getTime() + POLL_INTERVAL - Date.now()) / 1000;
+
+                    let nextUpdateDelta = nextPollDelta;
+                    while ((Date.now() / 1000) + nextUpdateDelta < ((scatter.startTime.getTime() + scatter.duration + MINUTE) / 1000)) {
+                        nextUpdateDelta += POLL_INTERVAL / 1000;
+                    }
+
+                    if (scatter.error) {
+                        headerTimerSpan.innerHTML = "Error: \"" + scatter.error.message + "\". Last refreshed " + refreshedAtDelta + " seconds ago. Retrying...";
+                    } else if (nextUpdateDelta >= 1) {
+                        headerTimerSpan.innerHTML = "Refresh in " + nextUpdateDelta.toFixed() + " seconds";
+                    } else {
+                        headerTimerSpan.innerHTML = "Refreshing...";
+                    }
+                    return;
+                }
+
+                if (scatter.error) {
+                    headerTimerSpan.innerHTML = "Error: \"" + scatter.error.message + "\". Retrying...";
+                    return;
+                }
+
+                headerTimerSpan.innerHTML = "";
+            }, 333);
+
+            const setRegion = function () {
+                headerTitleSpan.innerHTML = settings.region;
+            };
+
+            document.getElementById('settings').onclick = function () {
+                settingsPanel.style.display = "block";
+            }
+
+            let closeSettings = function (a) {
+                settingsPanel.style.display = "none";
+
+                if (settings.rebuild) {
+                    setRegion();
+                    scatter.setEntity(settings.entity);
+                }
+            }
+
+            document.getElementById('hideSettings').onclick = function () {
+                closeSettings();
+            }
+
+            settings.init();
+            scatter.init();
+            select.init();
+            traces.init();
+
+            setRegion();
+        </script>
+</body>
+
+</html>
