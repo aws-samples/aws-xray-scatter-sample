@@ -31,6 +31,8 @@ $ bundle exec rackup
 ```
 Open your browser to http://localhost:9292/
 
+*Note: The sample app default to the us-east-1 region. If your X-Ray data is in another region, click on the ... on the top right to bring up the region selection panel and select a different region.*
+
 #### AWS Elastic Beanstalk
 You can get started using the following steps:
   1. [Install the AWS Elastic Beanstalk Command Line Interface (CLI)](http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb-cli3-install.html).
